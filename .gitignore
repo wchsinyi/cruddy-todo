@@ -1,7 +1,7 @@
 datastore/data/*
 datastore/counter.txt
 test/testData
-
+test/experimentDelete.js
 ###OSX###
 
 .DS_Store
