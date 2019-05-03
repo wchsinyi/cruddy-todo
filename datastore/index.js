@@ -2,6 +2,8 @@ const fs = require('fs');
 const path = require('path');
 const _ = require('underscore');
 const counter = require('./counter');
+const Promise = require('bluebird');
+Promise.promisifyAll(fs);
 
 // var items = {};
 
@@ -16,13 +18,68 @@ exports.create = (text, callback) => {
   );
 };
 
+// Note -- one of them works and one of them doesn't work  
+// ############## CORRECT ###################
 exports.readAll = (callback) => {
-  fs.readdir(exports.dataDir, (err, files) => {
-    callback(null, files.map(file => (
-      { id: file.replace(".txt", ""), text: file.replace(".txt", "") }
-    )));
-  });
+  fs.readdirAsync(exports.dataDir, 'utf8')
+  .then(
+    files => {
+      Promise.all(
+        files.map( (item, idx ) => {
+          return fs.readFileAsync(path.join(exports.dataDir, item), 'utf8')
+            .then( 
+              txt => {  
+                var obj = {};
+                obj['id'] = item.replace('.txt', "") ;
+                obj['text'] = txt;
+                return obj
+                  }
+                ); 
+              }
+            )
+        ).then(data =>{ console.log('data', data); callback(null, data);});
+    }
+  )
 };
+
+// ############## INCORRECT ###################
+
+// exports.readAll = (callback) => {
+//   fs.readdirAsync(exports.dataDir, 'utf8')
+//   .then(
+//     files => {
+//       Promise.all(
+//         files.map( (item, idx ) => {
+//           return fs.readFileAsync(path.join(exports.dataDir, item), 'utf8')
+//             .then( 
+//               txt => {  
+//                 var obj = {};
+//                 obj['id'] = item.replace('.txt', "") ;
+//                 obj['text'] = txt;
+//                 return obj
+//                   }
+//                 ); 
+//               }
+//             )
+//         )
+//     }
+//   ).then(data =>{ console.log('data', data); callback(null, data);});
+// };
+
+
+// ############## Example of using Promise.all ###################
+var t = new Array(10).fill(0).map( (i, idx)=> idx*100 );
+var newt = t.map(function(j, idx){
+  return new Promise((resolve, reject)=>{
+    resolve({id: idx, text: j});
+  })
+  .then( result => {
+    console.log(result);
+    }
+  )
+})
+Promise.all(newt).then(data=>{console.log(data)})
+// ###############################################################
 
 exports.readOne = (id, callback) => {
   fs.readFile(path.join(exports.dataDir, id + '.txt'), 'utf8', (err, fileData) => {
