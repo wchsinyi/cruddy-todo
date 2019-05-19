@@ -13,7 +13,7 @@ exports.create = (text, callback) => {
   counter.getNextUniqueId(
     (err, nString) => {
       fs.writeFile(path.join(exports.dataDir, nString + '.txt'), text,
-        (err) => { callback(err, { id: nString, text }) });
+        (err) => { callback(err, { id: nString, text }); });
     }
   );
 };
@@ -22,25 +22,25 @@ exports.create = (text, callback) => {
 // ############## CORRECT ###################
 exports.readAll = (callback) => {
   fs.readdirAsync(exports.dataDir, 'utf8')
-  .then(
-    files => {
-      Promise.all(
-        files.map( (item, idx ) => {
-          return fs.readFileAsync(path.join(exports.dataDir, item), 'utf8')
-            .then( 
-              txt => {  
-                var obj = {};
-                obj['id'] = item.replace('.txt', "") ;
-                obj['text'] = txt;
-                return obj
-                  }
-                ); 
-              }
-            )
-        ).then(data =>{ console.log('data', data); callback(null, data);});
-    }
-  )
-};
+    .then(
+      files => {
+        Promise.all(
+          files.map( (item, idx ) => {
+            return fs.readFileAsync(path.join(exports.dataDir, item), 'utf8')
+              .then( 
+                txt => {  
+                  var obj = {};
+                  obj['id'] = item.replace('.txt', '');
+                  obj['text'] = txt;
+                  return obj;
+                }
+              ); 
+            }
+          )
+        ).then(data =>{ callback(null, data);});
+      }
+    )
+  };
 
 // ############## INCORRECT ###################
 
